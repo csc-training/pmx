@@ -55,23 +55,22 @@ class hyperqueue:
 
     def __init__(self, **kwargs):
 
-        self.simtime = 1-00    # hours
-        self.simnode = 1       # --nodes
-        self.simtask = 1       # --ntasks-per-node
-        self.simcpu  = 128     # --cpus-per-task
-        self.barray  = 0
-        self.earray  = 15
-        self.mpitype = 'none'
-        self.ncpus   = 1
-        self.fname   = 'hq.sh'
-        self.sname   = 'sys_gen.py'
-        self.jobname = 'HyperQueue'
-        self.modules = []
-        self.export  = []
-        self.header  = ''
-        self.modloc  = '/appl/local/csc/modulefiles'
-        self.mem     = 0       # --mem
-        self.account = ''
+        self.simtime   = 1-00    # hours
+        self.simnode   = 1       # --nodes
+        self.simtask   = 1       # --ntasks-per-node
+        self.simcpu    = 128     # --cpus-per-task
+        self.barray    = 0
+        self.earray    = 15
+        self.mpitype   = 'none'
+        self.ncpus     = 1
+        self.fname     = 'hq.sh'
+        self.jobname   = 'HyperQueue'
+        self.modules   = []
+        self.export    = []
+        self.header    = ''
+        self.modloc    = '/appl/local/csc/modulefiles'
+        self.mem       = 0       # --mem
+        self.account   = ''
         self.partition = ''
 
         for key, val in kwargs.items():
@@ -158,5 +157,4 @@ hq server stop
            smpi=self.mpitype,
            ncpu=self.ncpus,
            arrstart=self.barray,
-           arrend=self.earray,
-           batchjob=self.sname)
+           arrend=self.earray)
