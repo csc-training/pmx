@@ -55,19 +55,22 @@ class Jobscript:
 
     def __init__(self, **kwargs):
 
-        self.queue = 'SGE' # could be SLURM
-        self.simtime = 24 # hours
-        self.simcpu = 2 # CPU default
-        self.bGPU = True
-        self.fname = 'jobscript'
-        self.jobname = 'jobName'
-        self.modules = []
-        self.source = []
-        self.export = []
-        self.cmds = [] # commands to add to jobscript
-        self.gmx = None
-        self.header = ''
-        self.cmdline = ''
+        self.simtime   = 1-00   # hours
+        self.simnode   = 1
+        self.simtask   = 1
+        self.simcpu    = 2    # CPU default
+        self.bGPU      = True
+        self.simgpu    = 1
+        self.fname     = 'jobscript'
+        self.jobname   = 'jobName'
+        self.modules   = []
+        self.export    = []
+        self.cmds      = [] # commands to add to jobscript
+        self.gmx       = None
+        self.header    = ''
+        self.cmdline   = ''
+        self.modloc    = '/appl/local/csc/modulefiles'
+        self.account   = ''
         self.partition = ''
         
         for key, val in kwargs.items():
@@ -101,6 +104,7 @@ class Jobscript:
             
     def _create_header( self ):
         moduleline = ''
+        modlocline = ''
         sourceline = ''
         exportline = ''
         partitionline = self.partition
@@ -110,64 +114,71 @@ class Jobscript:
             sourceline = '{0}\nsource {1}'.format(sourceline,s)
         for e in self.export:
             exportline = '{0}\export load {1}'.format(exportline,e)
-        gpuline = ''
-        if self.bGPU==True:
-            if self.queue == 'SGE':
-                gpuline = '#$ -l gpu=1'
-            elif self.queue == 'SLURM':
-                gpuline = '#SBATCH --gres=gpu:1'
-        gmxline = ''
+        modlocline = '\nmodule use {0}'.format(self.modloc)
+        gmxline    = ''
+        bindline   = ''
+        
         if self.gmx!=None:
-            gmxline = 'export GMXRUN="{gmx} -ntomp {simcpu} -ntmpi 1"'.format(gmx=self.gmx,simcpu=self.simcpu)            
-            
-        if self.queue=='SGE':
-            self._create_SGE_header(moduleline,sourceline,exportline,gpuline,gmxline,partitionline)
-        elif self.queue=='SLURM':
-            self._create_SLURM_header(moduleline,sourceline,exportline,gpuline,gmxline,partitionline)
+            if self.bGPU == True:
+                gmxline = 'export GMXRUN="srun --cpu-bind=$CPU_BIND ./select_gpu {gmx}"'.format(gmx=self.gmx) 
+            else:
+                gmxline = 'export GMXRUN="srun {gmx}"'.format(gmx=self.gmx)
         
-    def _create_SGE_header( self,moduleline,sourceline,exportline,gpuline,gmxline, partitionline ):    
-        self.header = '''#$ -S /bin/bash
-#$ -N {jobname}
-#$ -l h_rt={simtime}:00:00
-#$ -cwd
-#$ -pe *_fast {simcpu}
-{gpu}
-
-{source}
-{modules}
-{export}
-
-{gmx}
-'''.format(jobname=self.jobname,simcpu=self.simcpu,simtime=self.simtime,gpu=gpuline,
-           source=sourceline,modules=moduleline,export=exportline,
-           gmx=gmxline)
+        self._create_SLURM_header(moduleline,sourceline,exportline,gmxline,modlocline)        
         
-        
-    def _create_SLURM_header( self,moduleline,sourceline,exportline,gpuline,gmxline,partitionline):
+    def _create_SLURM_header( self,moduleline,sourceline,exportline,gmxline,modlocline):
         fp = open(self.fname,'w')
 
-        # optionally, can create a partition entry
-        partition = ''
-        if partitionline!=None and partitionline!='':
-            partition = "#SBATCH --partition={0}\n".format(partitionline)
-
-        self.header = '''#!/bin/bash
+        if self.bGPU == True:
+            self.header = '''#!/bin/bash
 #SBATCH --job-name={jobname}
-#SBATCH --get-user-env
-#SBATCH -N 1
-#SBATCH -n {simcpu}
-#SBATCH -t {simtime}:00:00
-{partition}
-{gpu}
+#SBATCH --account={account}
+#SBATCH --time={simtime}:00:00
+#SBATCH --nodes={simnode}
+#SBATCH --gpus-per-node={simgpu}
+#SBATCH --ntasks-per-node={simtask}
+#SBATCH --partition={partition}
 
 {source}
+{modline}
+{modules}
+{export}
+
+cat << EOF > select_gpu
+#!/bin/bash
+
+export ROCR_VISIBLE_DEVICES=\$((SLURM_LOCALID%SLURM_GPUS_PER_NODE))
+exec \$*
+EOF
+
+chmod +x ./select_gpu
+
+CPU_BIND="mask_cpu:fe000000000000,fe00000000000000"
+CPU_BIND="${cpubind},fe0000,fe000000"
+CPU_BIND="${cpubind},fe,fe00"
+CPU_BIND="${cpubind},fe00000000,fe0000000000"
+
+{gmx}
+'''.format(jobname=self.jobname,account=self.account,simtime=self.simtime,simnode=self.simnode,simgpu=self.simgpu,simtask=self.simtask,partition=self.partition,
+           source=sourceline,modline=modlocline,modules=moduleline,export=exportline,cpubind='CPU_BIND',gmx=gmxline)
+        else:
+            self.header = '''#!/bin/bash
+#SBATCH --job-name={jobname}
+#SBATCH --account={account}
+#SBATCH --time={simtime}:00:00
+#SBATCH --nodes={simnode}
+#SBATCH --ntasks-per-node={simtask}
+#SBATCH --cpus-per-task={simcpu}
+#SBATCH --partition={partition}
+
+{source}
+{modline}
 {modules}
 {export}
 
 {gmx}
-'''.format(jobname=self.jobname,simcpu=self.simcpu,simtime=self.simtime,partition=partition,
-           gpu=gpuline,source=sourceline,modules=moduleline,export=exportline,
-           gmx=gmxline)
+'''.format(jobname=self.jobname,account=self.account,simtime=self.simtime,simnode=self.simnode,simtask=self.simtask,simcpu=self.simcpu,partition=self.partition,
+           source=sourceline,modline=modlocline,modules=moduleline,export=exportline,gmx=gmxline)
 
     def _submission_script( self, jobfolder, counter, simType='eq', frNum=80, bArray=True ):
         fname = '{0}/submit.py'.format(jobfolder)
