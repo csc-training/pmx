@@ -135,7 +135,7 @@ srun --overlap --cpu-bind=none --mpi={smpi} hq worker start \
 hq worker wait "$SLURM_NTASKS"
 
 # Submit tasks to workers
-hq submit --stdout=none --stderr=none --cpus={ncpu} --array={arrstart}-{arrend} python3 {batchjob} $HQ_TASK_ID
+hq submit --stdout=none --stderr=none --cpus={ncpu} --array={arrstart}-{arrend} ./launch.sh
 
 # Wait for all tasks to finish
 hq job wait all
