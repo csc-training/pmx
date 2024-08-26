@@ -1,4 +1,4 @@
-** PMX Workflow **
+#PMX Workflow
 
 A set of scripts to launch PMX workflow. The library 'Prepare_all.py' contains all the necessary functions to model and build the systems.
 
