@@ -13,11 +13,15 @@ from .library import mdps
 def get_gmx():
     """Gets path to gmx executable, and throws error if not found.
     """
-    gmx = which('gmx')
+    gmx = which('gmx_mpi')
     if gmx is not None:
         return gmx
     else:
-        raise EnvironmentError('gmx executable not found')
+        gmx = which('gmx')
+        if gmx is not None:
+            return gmx
+        else:
+            raise EnvironmentError('gmx executable not found')
 
 
 def set_gmxlib():
