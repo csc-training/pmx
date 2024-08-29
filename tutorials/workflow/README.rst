@@ -28,5 +28,5 @@ Steps
 
 * create a master 'launch.py' script that contains the entire workflow
 * create a 'hyperqueue.py' library for generating a hyperqueue batch submit script (created but not tested. Located within 'src/pmx' folder in the 'develop' branch).
-* create a 'sys_gen.py' python script that creates a single system from the `ligpairs.dat` list and energy minimizes it. This script is in-turn launched by a simple `batch.sh` script that assigns the HQ_TASK_ID as an input argument (sys.argv) to the `sys_gen.py` script. 
-* create a `multidir.py` library for generating jobscripts to launch simulations (equilibration or production runs) using the `-multidir` option.
+* create a 'sys_gen.py' python script that creates a single system from the 'ligpairs.dat' list and energy minimizes it. This script is in-turn launched by a simple 'batch.sh' script that assigns the HQ_TASK_ID as an input argument (sys.argv) to the 'sys_gen.py' script. 
+* create a 'multidir.py' library for generating jobscripts to launch simulations (equilibration or production runs) using the '-multidir' option.
