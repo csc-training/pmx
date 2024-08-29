@@ -7,7 +7,7 @@ A set of scripts to launch PMX workflow. The library 'Prepare_all.py' contains a
 * The folder 'mdppath' contains the '.mdp' files needed for building and simulating the systems.
 
 
-Currently, the workflow works in a way that you need to run the `run.py` python script on the compute node (either using interactive session or by submitting a batch script). The script reads the list of systems from `ligpairs.dat' file and, by importing the functions from `Prepare_all.py` script:
+Currently, the workflow works in a way that you need to run the _run.py_ python script on the compute node (either using interactive session or by submitting a batch script). The script reads the list of systems from `ligpairs.dat' file and, by importing the functions from `Prepare_all.py` script:
 
 * prepares a free energy directory 
 * performs atom mapping using pmx module 
