@@ -19,7 +19,7 @@ All the above steps are carried out serially (i.e. the systems are built in a se
 
 Following the prepartion of the systems, the script generates batch scripts for each of the subsequent processes - energy minimization, NVT/NPT equilibration and production run - for each  of the systems. 
 
-## Modified approach
+##Modified approach
 
 In order to be able to scale this workflow to large number of systems, it would be feasible if the systems are generated and energy minimized parallely. This can be achieved using the `hyperqueue` tool. The aim is to launch a hyperqueue batch job that launches an array of subtasks, with each subtask designed to generate the system and energy minimize it. Once this is done, multiple systems can be simulated (equilibration and production runs) within a single/multiple nodes using the `-multidir` option.
 
